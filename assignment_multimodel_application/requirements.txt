@@ -1,0 +1,7 @@
+langchain-groq # for using Groq's models with LangChain
+langchain-google-genai # for using Google's GenAI models with LangChain
+langchain-huggingface # for using Hugging Face models with LangChain
+streamlit # ui framwork
+python-dotenv # for loading environment variables from a .env file
+pillow # for image processing
+requests # for making HTTP requests to APIs
