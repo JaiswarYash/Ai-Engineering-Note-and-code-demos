@@ -147,7 +147,7 @@ def handle_text_to_text(groq_api_key: str, model: str):
     st.subheader("Conversation History")
     
     # Create a scrollable container for chat history
-    chat_container = st.container(height=400)
+    chat_container = st.container()
     with chat_container:
         for msg in st.session_state.messages:
             if msg["role"] == "user":
@@ -156,50 +156,51 @@ def handle_text_to_text(groq_api_key: str, model: str):
                 st.write(f"**Assistant:** {msg['content']}")
     
     st.divider()
-    
-    # Input section
-    col1, col2 = st.columns([0.9, 0.1])
-    with col1:
-        user_input = st.text_input("Your message:", placeholder="Ask me anything...", key="text_input")
-    with col2:
-        send_button = st.button("Send", key="send_button")
-    
-    # Process user input
-    if send_button and user_input:
-        try:
-            with st.spinner("🤖 Thinking..."):
-                # Initialize Groq client
-                client = get_groq_client(groq_api_key)
-                
-                # Add user message to history
-                st.session_state.messages.append({"role": "user", "content": user_input})
-                
-                # Prepare messages for API (keeping last 10 messages for context)
-                api_messages = [
-                    {"role": msg["role"], "content": msg["content"]}
-                    for msg in st.session_state.messages[-10:]
-                ]
-                
-                # Call Groq API
-                response = client.chat.completions.create(
-                    model=st.session_state.groq_model,
-                    messages=api_messages,
-                    max_tokens=1024,
-                    temperature=0.7
-                )
-                
-                assistant_response = response.choices[0].message.content
-                st.session_state.messages.append({"role": "assistant", "content": assistant_response})
-                
-                st.success("✅ Response received!")
-                st.rerun()
-                
-        except Exception as e:
-            st.error(f"❌ Error: {str(e)}")
-            if "rate_limit" in str(e).lower():
-                st.warning("⏳ Rate limit exceeded. Please wait a moment and try again.")
-            elif "api_key" in str(e).lower() or "401" in str(e):
-                st.error("🔑 Invalid API key. Please check your GROQ_API_KEY in `.env`.")
+
+    # Input section using a form so Enter submits and the field clears on submit
+    with st.form(key="chat_form", clear_on_submit=True):
+        col1, col2 = st.columns([0.9, 0.1])
+        with col1:
+            user_input = st.text_input("Your message:", placeholder="Ask me anything...", key="text_input")
+        with col2:
+            send_button = st.form_submit_button("Send")
+
+        # Process user input when form is submitted
+        if send_button and user_input:
+            try:
+                with st.spinner("🤖 Thinking..."):
+                    # Initialize Groq client
+                    client = get_groq_client(groq_api_key)
+
+                    # Add user message to history
+                    st.session_state.messages.append({"role": "user", "content": user_input})
+
+                    # Prepare messages for API (keeping last 10 messages for context)
+                    api_messages = [
+                        {"role": msg["role"], "content": msg["content"]}
+                        for msg in st.session_state.messages[-10:]
+                    ]
+
+                    # Call Groq API
+                    response = client.chat.completions.create(
+                        model=st.session_state.groq_model,
+                        messages=api_messages,
+                        max_tokens=1024,
+                        temperature=0.7
+                    )
+
+                    assistant_response = response.choices[0].message.content
+                    st.session_state.messages.append({"role": "assistant", "content": assistant_response})
+
+                    st.success("✅ Response received!")
+                    st.rerun()
+
+            except Exception as e:
+                st.error(f"❌ Error: {str(e)}")
+                if "rate_limit" in str(e).lower():
+                    st.warning("⏳ Rate limit exceeded. Please wait a moment and try again.")
+                elif "api_key" in str(e).lower() or "401" in str(e):
+                    st.error("🔑 Invalid API key. Please check your GROQ_API_KEY in `.env`.")
 
 
 # ============================================================================
