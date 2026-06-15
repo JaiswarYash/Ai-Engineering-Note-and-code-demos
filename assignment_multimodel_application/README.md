@@ -35,4 +35,4 @@ streamlit run streamlit_app.py
 ## Notes
 
 - If no supported API keys are available, the app will display status hints in the sidebar.
-- Image and audio features require `HUGGINGFACEHUB_API_TOKEN`.
+- Image and audio features require `HUGGINGFACEHUB_API_TOKEN` and `genimi_api_key`.
